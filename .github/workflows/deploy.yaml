@@ -1,0 +1,34 @@
+name: Deploy Worker
+on:
+  push:
+  pull_request:
+  repository_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+        with:
+          ref: ${{ env.GIT_REF }}
+          fetch-depth: 0
+
+        # npm (and node16) are installed by wrangler-action in a pre-job setup
+      - name: Get dependencies
+        run: npm i
+
+      - name: 📚 Wrangler publish
+        # github.com/cloudflare/wrangler-action
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CFAPI }}
+          # input overrides env-defaults, regardless
+          environment: ${{ env.WORKERS_ENV }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          GIT_COMMIT_ID: ${{ env.GIT_REF }}
+
+      - name: Notice
+        run: |
+          echo "::notice::Deployed to ${WORKERS_ENV} / ${GIT_REF} @ ${COMMIT_SHA}"
