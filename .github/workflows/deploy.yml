@@ -33,6 +33,7 @@ jobs:
       run: |
         npm install
         npm run build --if-present
+        npx wrangler dev
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v4
       with:
